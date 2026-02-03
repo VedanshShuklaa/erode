@@ -65,4 +65,12 @@ struct Token {
     > value;
 };
 
+enum class TypeKind {
+    INT,
+    FLOAT,
+    STRING,
+    BOOL,
+    CHAR
+};
+
 const char* to_string(Operator op);
