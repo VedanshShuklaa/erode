@@ -1,9 +1,8 @@
 #include <cstdint>
 #include <iostream>
-#include <fstream>
 #include <string>
 #include <unordered_map>
-#include "token.h"
+#include "../token/token.h"
 #include "lexer.h"
 
 [[noreturn]] void Lexer::error(const std::string& msg) {
@@ -240,109 +239,3 @@ const char* to_string(Operator op) {
     return "<unknown operator>";
 }
 
-// int main() {
-//     std::ifstream file("input.txt");
-//     std::string content((std::istreambuf_iterator<char>(file)), (std::istreambuf_iterator<char>()));
-//     content += '\0';
-    
-//     Lexer lexer(content.c_str(), content.c_str() + content.size());
-    
-//     while (lexer.current().kind != Kind::tok_eof) {
-//         Token token = lexer.current();
-//         switch (token.kind) {
-//             case Kind::tok_def:
-//                 std::cout << "DEF\n";
-//                 break;
-
-//             case Kind::tok_extern:
-//                 std::cout << "EXTERN\n";
-//                 break;
-
-//             case Kind::tok_int:
-//                 std::cout << "INT\n";
-//                 break;
-
-//             case Kind::tok_float:
-//                 std::cout << "FLOAT\n";
-//                 break;
-
-//             case Kind::tok_int_literal:
-//                 std::cout << "INT_LITERAL " << std::get<int64_t>(token.value) << "\n";
-//                 break;
-
-//             case Kind::tok_float_literal:
-//                 std::cout << "FLOAT_LITERAL " << std::get<double>(token.value) << "\n";
-//                 break;
-
-//             case Kind::tok_identifier:
-//                 std::cout << "IDENTIFIER " << std::get<std::string>(token.value) << "\n";
-//                 break;
-
-//             case Kind::tok_operator:
-//                 std::cout << "OPERATOR " << to_string(std::get<Operator>(token.value))<< "\n";
-//                 break;
-
-//             case Kind::tok_comma:
-//                 std::cout << "COMMA\n";
-//                 break;
-
-//             case Kind::tok_semicolon:
-//                 std::cout << "SEMICOLON\n";
-//                 break;
-
-//             case Kind::tok_lparen:
-//                 std::cout << "LPAREN\n";
-//                 break;
-
-//             case Kind::tok_rparen:
-//                 std::cout << "RPAREN\n";
-//                 break;
-
-//             case Kind::tok_lbrace:
-//                 std::cout << "LBRACE\n";
-//                 break;
-
-//             case Kind::tok_rbrace:
-//                 std::cout << "RBRACE\n";
-//                 break;
-
-//             case Kind::tok_lbracket:
-//                 std::cout << "LBRACKET\n";
-//                 break;
-
-//             case Kind::tok_rbracket:
-//                 std::cout << "RBRACKET\n";
-//                 break;
-
-//             case Kind::tok_char:
-//                 std::cout << "CHAR " << "\n";
-//                 break;
-
-//             case Kind::tok_bool:
-//                 std::cout << "BOOL " << "\n";
-//                 break;
-
-//             case Kind::tok_string:
-//                 std::cout << "STRING " << "\n";
-//                 break;
-            
-//             case Kind::tok_char_literal:
-//                 std::cout << "CHAR_LITERAL " << std::get<char>(token.value) << "\n";
-//                 break;
-
-//             case Kind::tok_string_literal:
-//                 std::cout << "STRING_LITERAL " << std::get<std::string>(token.value) << "\n";
-//                 break;
-
-//             case Kind::tok_bool_literal:
-//                 std::cout << "BOOL_LITERAL " << (std::get<bool>(token.value) ? "true" : "false") << "\n";
-//                 break;
-
-//             case Kind::tok_eof:
-//                 std::cout << "EOF\n";
-//                 break;
-//         }
-//         lexer.next();
-//     }
-//     return 0;
-// }

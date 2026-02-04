@@ -1,4 +1,4 @@
-#include "token.h"
+#include "../token/token.h"
 
 bool isOperator(Operator op) {
     return op == Operator::Plus || op == Operator::Minus || op == Operator::Multiply || op == Operator::Divide;
