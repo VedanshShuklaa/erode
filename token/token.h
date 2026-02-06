@@ -27,6 +27,8 @@ enum Kind {
     tok_rbrace,
     tok_lbracket,
     tok_rbracket,
+    tok_arrow,
+    tok_return
 };
 
 enum class Operator {
@@ -50,6 +52,7 @@ enum class Operator {
     Or,
     Not,
     Equal,
+    Arrow,
 };
 
 struct Token {
@@ -70,7 +73,8 @@ enum class TypeKind {
     FLOAT,
     STRING,
     BOOL,
-    CHAR
+    CHAR,
+    VOID
 };
 
 const char* to_string(Operator op);

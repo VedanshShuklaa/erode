@@ -14,6 +14,7 @@ public:
     Parser(Lexer& lexer);
 
     std::unique_ptr<Program> parseProgram();
+    void printProgram(Program* program);
 
 private:
     Lexer& lexer;
@@ -39,4 +40,5 @@ private:
     Expression* parseUnary();
     Expression* parsePostfix();
     Expression* parsePrimary();
+
 };

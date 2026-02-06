@@ -31,6 +31,21 @@ This project is **early-stage and experimental**. Expect frequent breaking chang
 
 Rust’s safety guarantees are powerful but complex. Building erode is a way to learn by rebuilding: understanding not just how a borrow checker is used, but how one is designed, implemented, and reasoned about.
 
+## Build
+Inside build/ directory, run
+
+```bash
+cmake ..
+make
+./erode
+```
+
+## Usage
+
+```bash
+./erode <input_file>
+```
+
 ## License
 
 MIT

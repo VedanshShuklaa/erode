@@ -9,6 +9,7 @@ public:
 
     const Token& current() const;
     const Token& next();
+    void test_lexer();
 
 private:
     const char* cur;

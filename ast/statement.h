@@ -1,8 +1,12 @@
+//Statement header file for all the statement related AST nodes
+
 #pragma once
 #include "item.h"
 #include "expression.h"
 
-struct Statement : Item {};
+struct Statement : Item {
+    
+};
 
 struct ExprStmt : Statement {
     Expression* expr;
@@ -21,4 +25,10 @@ struct VarDeclStmt : Statement {
 
 struct BlockStmt : Statement {
     std::vector<Statement*> statements;
+};
+
+struct ReturnStmt : Statement {
+    Expression* value;
+
+    ReturnStmt(Expression* value) : value(value) {}
 };

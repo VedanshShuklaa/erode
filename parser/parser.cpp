@@ -81,13 +81,27 @@ FunctionDef* Parser::parseFunction() {
         }
     }
     consume(Kind::tok_rparen, "Expected ')' after function parameters");
+
+    TypeKind returnType = TypeKind::VOID;
+
+    if (lexer.current().kind == Kind::tok_arrow) {
+        lexer.next();
+        token = lexer.current();
+        if (!isType(token.kind)) {
+            error("Expected type after '->' in function return type");
+        }
+        returnType = getTypeKind(token.kind);
+        lexer.next();
+        token = lexer.current();
+    }
+
     consume(Kind::tok_lbrace, "Expected '{' after function parameters");
     
     BlockStmt* body = parseBlock();
     
     consume(Kind::tok_rbrace, "Expected '}' to close function body");
     
-    return new FunctionDef(name, params, body, std::nullopt);
+    return new FunctionDef(name, params, body, returnType);
 }
 
 BlockStmt* Parser::parseBlock() {
@@ -101,6 +115,11 @@ BlockStmt* Parser::parseBlock() {
 }
 
 ExternDecl* Parser::parseExtern() {
+    TypeKind returnType = TypeKind::VOID;
+    if (isType(lexer.current().kind)) {
+        returnType = getTypeKind(lexer.current().kind);
+        lexer.next();
+    }
     Token token = consume(Kind::tok_identifier, "Expected identifier after extern");
     std::string name = std::get<std::string>(token.value);
     
@@ -137,11 +156,21 @@ ExternDecl* Parser::parseExtern() {
     consume(Kind::tok_rparen, "Expected ')' after extern parameters");
     consume(Kind::tok_semicolon, "Expected ';' after extern declaration");
             
-    ExternDecl* externDecl = new ExternDecl(name, params);
+    ExternDecl* externDecl = new ExternDecl(name, params, returnType);
     return externDecl;
 }
 
 Statement* Parser::parseStatement() {
+    if (lexer.current().kind == Kind::tok_return) {
+        consume(Kind::tok_return, "Expected 'return'");
+        Expression* value = nullptr;
+        if (lexer.current().kind != Kind::tok_semicolon) {
+            value = parseExpression();
+        }
+        consume(Kind::tok_semicolon, "Expected ';'");
+        return new ReturnStmt(value);
+    }
+
     if (isType(lexer.current().kind)) {
         TypeKind type = getTypeKind(lexer.current().kind);
         lexer.next();
@@ -307,4 +336,149 @@ Expression* Parser::parsePrimary() {
         return expr;
     }
     error("Unexpected token in expression");
+}
+
+static void indent(int depth) {
+    for (int i = 0; i < depth; ++i)
+        std::cout << "  ";
+}
+
+void printExpr(Expression* expr, int depth);
+
+void printBinary(BinaryExpr* expr, int depth) {
+    indent(depth);
+    std::cout << "BinaryExpr " << to_string(expr->op) << "\n";
+    printExpr(expr->left, depth + 1);
+    printExpr(expr->right, depth + 1);
+}
+
+void printUnary(UnaryExpr* expr, int depth) {
+    indent(depth);
+    std::cout << "UnaryExpr " << to_string(expr->op) << "\n";
+    printExpr(expr->operand, depth + 1);
+}
+
+void printExpr(Expression* expr, int depth) {
+    if (auto* e = dynamic_cast<IntExpr*>(expr)) {
+        indent(depth);
+        std::cout << "IntLiteral " << e->value << "\n";
+    }
+    else if (auto* e = dynamic_cast<FloatExpr*>(expr)) {
+        indent(depth);
+        std::cout << "FloatLiteral " << e->value << "\n";
+    }
+    else if (auto* e = dynamic_cast<BoolExpr*>(expr)) {
+        indent(depth);
+        std::cout << "BoolLiteral " << e->value << "\n";
+    }
+    else if (auto* e = dynamic_cast<CharExpr*>(expr)) {
+        indent(depth);
+        std::cout << "CharLiteral '" << e->value << "'\n";
+    }
+    else if (auto* e = dynamic_cast<StringExpr*>(expr)) {
+        indent(depth);
+        std::cout << "StringLiteral \"" << e->value << "\"\n";
+    }
+    else if (auto* e = dynamic_cast<IdentifierExpr*>(expr)) {
+        indent(depth);
+        std::cout << "Identifier " << e->name << "\n";
+    }
+    else if (auto* e = dynamic_cast<BinaryExpr*>(expr)) {
+        printBinary(e, depth);
+    }
+    else if (auto* e = dynamic_cast<UnaryExpr*>(expr)) {
+        printUnary(e, depth);
+    }
+    else if (auto* e = dynamic_cast<CallExpr*>(expr)) {
+        indent(depth);
+        std::cout << "CallExpr " << e->callee << "\n";
+        for (auto* arg : e->arguments) {
+            printExpr(arg, depth + 1);
+        }
+    }
+    else {
+        indent(depth);
+        std::cout << "<unknown expr>\n";
+    }
+}
+
+void printStmt(Statement* stmt, int depth);
+
+void printBlock(BlockStmt* block, int depth) {
+    indent(depth);
+    std::cout << "Block\n";
+    for (auto* s : block->statements) {
+        printStmt(s, depth + 1);
+    }
+}
+
+void printStmt(Statement* stmt, int depth) {
+    if (auto* s = dynamic_cast<VarDeclStmt*>(stmt)) {
+        indent(depth);
+        std::cout << "VarDecl "
+                  << type_to_string(s->kind)
+                  << " "
+                  << s->name << "\n";
+        if (s->initializer) {
+            printExpr(s->initializer, depth + 1);
+        }
+    }
+    else if (auto* s = dynamic_cast<ExprStmt*>(stmt)) {
+        indent(depth);
+        std::cout << "ExprStmt\n";
+        printExpr(s->expr, depth + 1);
+    }
+    else if (auto* s = dynamic_cast<BlockStmt*>(stmt)) {
+        printBlock(s, depth);
+    }
+    else if (auto* s = dynamic_cast<ReturnStmt*>(stmt)) {
+        indent(depth);
+        std::cout << "ReturnStmt\n";
+        printExpr(s->value, depth + 1);
+    }
+    else {
+        indent(depth);
+        std::cout << "<unknown stmt>\n";
+    }
+}
+
+void printItem(Item* item, int depth) {
+    if (auto* f = dynamic_cast<FunctionDef*>(item)) {
+        indent(depth);
+        std::cout << "FunctionDef " << f->name << " " << type_to_string(f->returnType) << "\n";
+
+        indent(depth + 1);
+        std::cout << "Params\n";
+        for (auto& p : f->params) {
+            indent(depth + 2);
+            std::cout << type_to_string(p.type) << " " << p.name << "\n";
+        }
+
+        indent(depth + 1);
+        std::cout << "Body\n";
+        printBlock(f->body, depth + 2);
+    }
+    else if (auto* e = dynamic_cast<ExternDecl*>(item)) {
+        indent(depth);
+        std::cout << "ExternDecl " << e->name << "\n";
+        for (auto& p : e->params) {
+            indent(depth + 1);
+            std::cout << type_to_string(p.type) << " " << p.name << "\n";
+        }
+    }
+    else if (auto* s = dynamic_cast<Statement*>(item)) {
+        printStmt(s, depth);
+    }
+    else {
+        indent(depth);
+        std::cout << "<unknown item>\n";
+    }
+}
+
+//Prints the parsed program
+void Parser::printProgram(Program* program) {
+    std::cout << "Program\n";
+    for (auto* item : program->items) {
+        printItem(item, 1);
+    }
 }

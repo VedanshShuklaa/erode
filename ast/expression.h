@@ -1,10 +1,14 @@
+//Expression header file for all the expression related AST nodes
+
 #pragma once
 #include "node.h"
 #include "../token/token.h"
 #include <string>
 #include <vector>
 
-struct Expression : Node {};
+struct Expression : Node {
+    
+};
 
 struct IdentifierExpr : Expression {
     std::string name;

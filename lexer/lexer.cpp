@@ -67,16 +67,21 @@ Token Lexer::lex_alpha() {
     if (name == "char") {
         return Token{Kind::tok_char, std::monostate{}};
     }
+    if (name == "return") {
+        return Token{Kind::tok_return, std::monostate{}};
+    }
     return Token{Kind::tok_identifier, name};
 }
 
 Token Lexer::lex_number() {
    // integer accumulator to avoid precision issues before we know it's a float
    int64_t intval = 0;
+
    while (isdigit((unsigned char)*cur)) {
        intval = intval * 10 + (*cur - '0');
        cur++;
    }
+
    if (*cur == '.') {
        cur++;
        double frac = 0;
@@ -113,12 +118,17 @@ Token Lexer::lex_operator() {
         {"!",  Operator::Not},
         {"&",  Operator::And},
         {"|",  Operator::Or},
-        {"<",  Operator::Less},    // added single-char < and >
+        {"<",  Operator::Less},
         {">",  Operator::Greater},
+        {"->", Operator::Arrow},
     };
     if (cur + 1 < end) {
         std::string_view two(cur, 2);
         if (auto it = ops.find(two); it != ops.end()) {
+            if (it->second == Operator::Arrow) {
+                cur += 2;
+                return {Kind::tok_arrow, it->second};
+            }
             cur += 2;
             return {Kind::tok_operator, it->second};
         }
@@ -235,7 +245,107 @@ const char* to_string(Operator op) {
         case Operator::Equal:        return "=";
         case Operator::Greater:      return ">";
         case Operator::Less:         return "<";
+        case Operator::Arrow:        return "->";
     }
     return "<unknown operator>";
 }
 
+void Lexer::test_lexer() {
+    while (current().kind != Kind::tok_eof) {
+        Token token = current();
+        switch (token.kind) {
+            case Kind::tok_def:
+                std::cout << "DEF\n";
+                break;
+
+            case Kind::tok_extern:
+                std::cout << "EXTERN\n";
+                break;
+
+            case Kind::tok_int:
+                std::cout << "INT\n";
+                break;
+
+            case Kind::tok_float:
+                std::cout << "FLOAT\n";
+                break;
+
+            case Kind::tok_int_literal:
+                std::cout << "INT_LITERAL " << std::get<int64_t>(token.value) << "\n";
+                break;
+
+            case Kind::tok_float_literal:
+                std::cout << "FLOAT_LITERAL " << std::get<double>(token.value) << "\n";
+                break;
+
+            case Kind::tok_identifier:
+                std::cout << "IDENTIFIER " << std::get<std::string>(token.value) << "\n";
+                break;
+
+            case Kind::tok_operator:
+                std::cout << "OPERATOR " << to_string(std::get<Operator>(token.value))<< "\n";
+                break;
+
+            case Kind::tok_comma:
+                std::cout << "COMMA\n";
+                break;
+
+            case Kind::tok_semicolon:
+                std::cout << "SEMICOLON\n";
+                break;
+
+            case Kind::tok_lparen:
+                std::cout << "LPAREN\n";
+                break;
+
+            case Kind::tok_rparen:
+                std::cout << "RPAREN\n";
+                break;
+
+            case Kind::tok_lbrace:
+                std::cout << "LBRACE\n";
+                break;
+
+            case Kind::tok_rbrace:
+                std::cout << "RBRACE\n";
+                break;
+
+            case Kind::tok_lbracket:
+                std::cout << "LBRACKET\n";
+                break;
+
+            case Kind::tok_rbracket:
+                std::cout << "RBRACKET\n";
+                break;
+
+            case Kind::tok_char:
+                std::cout << "CHAR " << "\n";
+                break;
+
+            case Kind::tok_bool:
+                std::cout << "BOOL " << "\n";
+                break;
+
+            case Kind::tok_string:
+                std::cout << "STRING " << "\n";
+                break;
+            
+            case Kind::tok_char_literal:
+                std::cout << "CHAR_LITERAL " << std::get<char>(token.value) << "\n";
+                break;
+
+            case Kind::tok_string_literal:
+                std::cout << "STRING_LITERAL " << std::get<std::string>(token.value) << "\n";
+                break;
+
+            case Kind::tok_bool_literal:
+                std::cout << "BOOL_LITERAL " << (std::get<bool>(token.value) ? "true" : "false") << "\n";
+                break;
+
+            case Kind::tok_eof:
+                std::cout << "EOF\n";
+                break;
+        }
+        next();
+    }
+}

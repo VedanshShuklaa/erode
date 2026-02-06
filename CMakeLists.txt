@@ -16,6 +16,7 @@ add_executable(erode
 
     lexer/lexer.cpp
     parser/parser.cpp
+    semantics/semantic_analyzer.cpp
 )
 
 target_include_directories(erode 
@@ -25,6 +26,7 @@ target_include_directories(erode
         ${CMAKE_CURRENT_SOURCE_DIR}/parser
         ${CMAKE_CURRENT_SOURCE_DIR}/token
         ${CMAKE_CURRENT_SOURCE_DIR}/ast
+        ${CMAKE_CURRENT_SOURCE_DIR}/semantics
 )
 
 target_compile_options(erode
