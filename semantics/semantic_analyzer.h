@@ -10,26 +10,25 @@ class SemanticAnalyzer {
 public:
     SemanticAnalyzer();
 
-    void analyzeProgram(Program* program);
+    void analyzeProgram(Program* t_program);
 
 private:
-    // Error handling
-    [[noreturn]] void error(const std::string& message);
+    [[noreturn]] void error(const std::string& t_message);
 
-    // Scope management
     void enterScope();
     void leaveScope();
 
-    // Item-level analysis
-    void analyzeItem(Item* item);
-    void analyzeFunction(FunctionDef* func);
-    void analyzeExtern(ExternDecl* externDecl);
+    void analyzeItem(Item* t_item);
+    void analyzeFunction(FunctionDef* t_func);
+    void analyzeExtern(ExternDecl* t_externDecl);
 
-    // Statement & expression analysis
-    void analyzeStatement(Statement* stmt);
-    TypeKind analyzeExpression(Expression* expr);
+    void analyzeStatement(Statement* t_stmt);
+    void analyzeIf(IfStmt* t_stmt);
+    void analyzeWhile(WhileStmt* t_stmt);
+    void analyzeFor(ForStmt* t_stmt);
+    TypeKind analyzeExpression(Expression* t_expr);
 
 private:
-    TypeKind currentReturnType;
-    Scope* currentScope;
+    TypeKind m_currentReturnType;
+    Scope* m_currentScope;
 };

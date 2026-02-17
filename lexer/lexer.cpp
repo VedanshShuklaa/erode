@@ -70,11 +70,22 @@ Token Lexer::lex_alpha() {
     if (name == "return") {
         return Token{Kind::tok_return, std::monostate{}};
     }
+    if (name == "if") {
+        return Token{Kind::tok_if, std::monostate{}};
+    }
+    if (name == "else") {
+        return Token{Kind::tok_else, std::monostate{}};
+    }
+    if (name == "while") {
+        return Token{Kind::tok_while, std::monostate{}};
+    }
+    if (name == "for") {
+        return Token{Kind::tok_for, std::monostate{}};
+    }
     return Token{Kind::tok_identifier, name};
 }
 
 Token Lexer::lex_number() {
-   // integer accumulator to avoid precision issues before we know it's a float
    int64_t intval = 0;
 
    while (isdigit((unsigned char)*cur)) {
@@ -154,7 +165,7 @@ Token Lexer::lex_separator() {
         case '[' : return Token{Kind::tok_lbracket, std::monostate{}};
         case ']' : return Token{Kind::tok_rbracket, std::monostate{}};
         default:
-            return Token{Kind::tok_eof, std::monostate{}}; // shouldn't happen
+            return Token{Kind::tok_eof, std::monostate{}};
     }
 }
 
@@ -163,7 +174,7 @@ Token Lexer::lex_eof() {
 }
 
 Token Lexer::lex_string() {
-    cur++; // skip opening "
+    cur++;
     std::string value;
     while (*cur != '"' && *cur != '\0') {
         value += *cur;
@@ -171,19 +182,19 @@ Token Lexer::lex_string() {
     }
     if (*cur != '"')
         error("unterminated string");
-    cur++; // skip closing "
+    cur++;
     return {Kind::tok_string_literal, value};
 }
 
 Token Lexer::lex_char() {
-    cur++; // skip '
+    cur++;
     if (*cur == '\0')
         error("unterminated char");
     char value = *cur;
     cur++;
     if (*cur != '\'')
         error("unterminated char");
-    cur++; // skip closing '
+    cur++;
     return {Kind::tok_char_literal, value};
 }
 
@@ -319,15 +330,15 @@ void Lexer::test_lexer() {
                 break;
 
             case Kind::tok_char:
-                std::cout << "CHAR " << "\n";
+                std::cout << "CHAR\n";
                 break;
 
             case Kind::tok_bool:
-                std::cout << "BOOL " << "\n";
+                std::cout << "BOOL\n";
                 break;
 
             case Kind::tok_string:
-                std::cout << "STRING " << "\n";
+                std::cout << "STRING\n";
                 break;
             
             case Kind::tok_char_literal:
@@ -340,6 +351,30 @@ void Lexer::test_lexer() {
 
             case Kind::tok_bool_literal:
                 std::cout << "BOOL_LITERAL " << (std::get<bool>(token.value) ? "true" : "false") << "\n";
+                break;
+
+            case Kind::tok_arrow:
+                std::cout << "ARROW\n";
+                break;
+
+            case Kind::tok_return:
+                std::cout << "RETURN\n";
+                break;
+
+            case Kind::tok_if:
+                std::cout << "IF\n";
+                break;
+
+            case Kind::tok_else:
+                std::cout << "ELSE\n";
+                break;
+
+            case Kind::tok_while:
+                std::cout << "WHILE\n";
+                break;
+
+            case Kind::tok_for:
+                std::cout << "FOR\n";
                 break;
 
             case Kind::tok_eof:

@@ -18,20 +18,19 @@ public:
     std::unordered_map<std::string, Symbol> symbols;
 
     Scope() : parent(nullptr) {}
-    Scope(Scope* parent) : parent(parent) {}
+    Scope(Scope* t_parent) : parent(t_parent) {}
 
-    bool insert(const std::string& name, const Symbol& symbol) {
-        return symbols.emplace(name, symbol).second;
+    bool insert(const std::string& t_name, const Symbol& t_symbol) {
+        return symbols.emplace(t_name, t_symbol).second;
     }
 
-    std::optional<Symbol> lookup(const std::string& name) {
-        if (symbols.count(name)) {
-            return symbols[name];
+    std::optional<Symbol> lookup(const std::string& t_name) {
+        if (symbols.count(t_name)) {
+            return symbols[t_name];
         }
         if (parent) {
-            return parent->lookup(name);
+            return parent->lookup(t_name);
         }
         return std::nullopt;
     }
 };
-

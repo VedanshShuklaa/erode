@@ -160,7 +160,99 @@ ExternDecl* Parser::parseExtern() {
     return externDecl;
 }
 
+IfStmt* Parser::parseIf() {
+    consume(Kind::tok_lparen, "Expected '(' after 'if'");
+    Expression* condition = parseExpression();
+    consume(Kind::tok_rparen, "Expected ')' after if condition");
+    
+    consume(Kind::tok_lbrace, "Expected '{' after if condition");
+    BlockStmt* thenBlock = parseBlock();
+    consume(Kind::tok_rbrace, "Expected '}' after if body");
+    
+    BlockStmt* elseBlock = nullptr;
+    if (lexer.current().kind == Kind::tok_else) {
+        lexer.next();
+        consume(Kind::tok_lbrace, "Expected '{' after 'else'");
+        elseBlock = parseBlock();
+        consume(Kind::tok_rbrace, "Expected '}' after else body");
+    }
+    
+    return new IfStmt(condition, thenBlock, elseBlock);
+}
+
+WhileStmt* Parser::parseWhile() {
+    consume(Kind::tok_lparen, "Expected '(' after 'while'");
+    Expression* condition = parseExpression();
+    consume(Kind::tok_rparen, "Expected ')' after while condition");
+    
+    consume(Kind::tok_lbrace, "Expected '{' after while condition");
+    BlockStmt* body = parseBlock();
+    consume(Kind::tok_rbrace, "Expected '}' after while body");
+    
+    return new WhileStmt(condition, body);
+}
+
+ForStmt* Parser::parseFor() {
+    consume(Kind::tok_lparen, "Expected '(' after 'for'");
+    
+    // Parse initializer
+    Statement* init = nullptr;
+    if (lexer.current().kind != Kind::tok_semicolon) {
+        if (isType(lexer.current().kind)) {
+            TypeKind type = getTypeKind(lexer.current().kind);
+            lexer.next();
+            Token nameTok = consume(Kind::tok_identifier, "Expected identifier in for init");
+            Expression* initExpr = nullptr;
+            if (lexer.current().kind == Kind::tok_operator &&
+                std::get<Operator>(lexer.current().value) == Operator::Equal) {
+                lexer.next();
+                initExpr = parseExpression();
+            }
+            init = new VarDeclStmt(type, std::get<std::string>(nameTok.value), initExpr);
+        } else {
+            Expression* expr = parseExpression();
+            init = new ExprStmt(expr);
+        }
+    }
+    consume(Kind::tok_semicolon, "Expected ';' after for initializer");
+    
+    // Parse condition
+    Expression* condition = nullptr;
+    if (lexer.current().kind != Kind::tok_semicolon) {
+        condition = parseExpression();
+    }
+    consume(Kind::tok_semicolon, "Expected ';' after for condition");
+    
+    // Parse increment
+    Expression* increment = nullptr;
+    if (lexer.current().kind != Kind::tok_rparen) {
+        increment = parseExpression();
+    }
+    consume(Kind::tok_rparen, "Expected ')' after for clauses");
+    
+    consume(Kind::tok_lbrace, "Expected '{' after for header");
+    BlockStmt* body = parseBlock();
+    consume(Kind::tok_rbrace, "Expected '}' after for body");
+    
+    return new ForStmt(init, condition, increment, body);
+}
+
 Statement* Parser::parseStatement() {
+    if (lexer.current().kind == Kind::tok_if) {
+        consume(Kind::tok_if, "Expected 'if'");
+        return parseIf();
+    }
+
+    if (lexer.current().kind == Kind::tok_while) {
+        consume(Kind::tok_while, "Expected 'while'");
+        return parseWhile();
+    }
+
+    if (lexer.current().kind == Kind::tok_for) {
+        consume(Kind::tok_for, "Expected 'for'");
+        return parseFor();
+    }
+
     if (lexer.current().kind == Kind::tok_return) {
         consume(Kind::tok_return, "Expected 'return'");
         Expression* value = nullptr;
@@ -185,6 +277,7 @@ Statement* Parser::parseStatement() {
         auto* stmt = new VarDeclStmt(type, std::get<std::string>(nameTok.value), init);
         return stmt;
     }
+
     Expression* expr = parseExpression();
     consume(Kind::tok_semicolon, "Expected ';'");
     
@@ -192,7 +285,25 @@ Statement* Parser::parseStatement() {
 }
 
 Expression* Parser::parseExpression() {
-    return parseLogicalOr();
+    return parseAssignment();
+}
+
+Expression* Parser::parseAssignment() {
+    Expression* left = parseLogicalOr();
+    
+    if (lexer.current().kind == Kind::tok_operator &&
+        std::get<Operator>(lexer.current().value) == Operator::Equal) {
+        lexer.next();
+        Expression* right = parseAssignment(); // right-associative
+        
+        if (auto* ident = dynamic_cast<IdentifierExpr*>(left)) {
+            return new AssignExpr(ident->name, right);
+        } else {
+            error("Left side of assignment must be a variable");
+        }
+    }
+    
+    return left;
 }
 
 Expression* Parser::parseLogicalOr() {
@@ -216,6 +327,7 @@ Expression* Parser::parseLogicalAnd() {
     }
     return left;
 }
+
 Expression* Parser::parseEquality() {
     Expression* left = parseComparison();
     while (lexer.current().kind == Kind::tok_operator) {
@@ -359,6 +471,11 @@ void printUnary(UnaryExpr* expr, int depth) {
 }
 
 void printExpr(Expression* expr, int depth) {
+    if (!expr) {
+        indent(depth);
+        std::cout << "<null>\n";
+        return;
+    }
     if (auto* e = dynamic_cast<IntExpr*>(expr)) {
         indent(depth);
         std::cout << "IntLiteral " << e->value << "\n";
@@ -396,6 +513,11 @@ void printExpr(Expression* expr, int depth) {
             printExpr(arg, depth + 1);
         }
     }
+    else if (auto* e = dynamic_cast<AssignExpr*>(expr)) {
+        indent(depth);
+        std::cout << "AssignExpr " << e->name << "\n";
+        printExpr(e->value, depth + 1);
+    }
     else {
         indent(depth);
         std::cout << "<unknown expr>\n";
@@ -413,6 +535,11 @@ void printBlock(BlockStmt* block, int depth) {
 }
 
 void printStmt(Statement* stmt, int depth) {
+    if (!stmt) {
+        indent(depth);
+        std::cout << "<null>\n";
+        return;
+    }
     if (auto* s = dynamic_cast<VarDeclStmt*>(stmt)) {
         indent(depth);
         std::cout << "VarDecl "
@@ -428,13 +555,71 @@ void printStmt(Statement* stmt, int depth) {
         std::cout << "ExprStmt\n";
         printExpr(s->expr, depth + 1);
     }
+    else if (auto* s = dynamic_cast<IfStmt*>(stmt)) {
+        indent(depth);
+        std::cout << "IfStmt\n";
+        indent(depth + 1);
+        std::cout << "Condition\n";
+        printExpr(s->condition, depth + 2);
+        indent(depth + 1);
+        std::cout << "Then\n";
+        printBlock(s->thenBlock, depth + 2);
+        if (s->elseBlock) {
+            indent(depth + 1);
+            std::cout << "Else\n";
+            printBlock(s->elseBlock, depth + 2);
+        }
+    }
+    else if (auto* s = dynamic_cast<WhileStmt*>(stmt)) {
+        indent(depth);
+        std::cout << "WhileStmt\n";
+        indent(depth + 1);
+        std::cout << "Condition\n";
+        printExpr(s->condition, depth + 2);
+        indent(depth + 1);
+        std::cout << "Body\n";
+        printBlock(s->body, depth + 2);
+    }
+    else if (auto* s = dynamic_cast<ForStmt*>(stmt)) {
+        indent(depth);
+        std::cout << "ForStmt\n";
+        indent(depth + 1);
+        std::cout << "Init\n";
+        if (s->init) {
+            printStmt(s->init, depth + 2);
+        } else {
+            indent(depth + 2);
+            std::cout << "<none>\n";
+        }
+        indent(depth + 1);
+        std::cout << "Condition\n";
+        if (s->condition) {
+            printExpr(s->condition, depth + 2);
+        } else {
+            indent(depth + 2);
+            std::cout << "<none>\n";
+        }
+        indent(depth + 1);
+        std::cout << "Increment\n";
+        if (s->increment) {
+            printExpr(s->increment, depth + 2);
+        } else {
+            indent(depth + 2);
+            std::cout << "<none>\n";
+        }
+        indent(depth + 1);
+        std::cout << "Body\n";
+        printBlock(s->body, depth + 2);
+    }
     else if (auto* s = dynamic_cast<BlockStmt*>(stmt)) {
         printBlock(s, depth);
     }
     else if (auto* s = dynamic_cast<ReturnStmt*>(stmt)) {
         indent(depth);
         std::cout << "ReturnStmt\n";
-        printExpr(s->value, depth + 1);
+        if (s->value) {
+            printExpr(s->value, depth + 1);
+        }
     }
     else {
         indent(depth);
@@ -475,7 +660,6 @@ void printItem(Item* item, int depth) {
     }
 }
 
-//Prints the parsed program
 void Parser::printProgram(Program* program) {
     std::cout << "Program\n";
     for (auto* item : program->items) {

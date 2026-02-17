@@ -5,7 +5,7 @@
 
 class Lexer {
 public:
-    Lexer(const char* start, const char* end);
+    Lexer(const char* t_start, const char* t_end);
 
     const Token& current() const;
     const Token& next();
@@ -27,5 +27,5 @@ private:
     Token lex_char();
     Token lex_eof();
 
-    [[noreturn]] void error(const std::string& msg);
+    [[noreturn]] void error(const std::string& t_msg);
 };

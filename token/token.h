@@ -28,7 +28,11 @@ enum Kind {
     tok_lbracket,
     tok_rbracket,
     tok_arrow,
-    tok_return
+    tok_return,
+    tok_if,
+    tok_else,
+    tok_while,
+    tok_for
 };
 
 enum class Operator {

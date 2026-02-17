@@ -1,31 +1,29 @@
-// Helper functions for the parser
-
 #pragma once
 #include "../token/token.h"
 
-bool isOperator(Operator op) {
-    return op == Operator::Plus || op == Operator::Minus || op == Operator::Multiply || op == Operator::Divide;
+inline bool isOperator(Operator t_op) {
+    return t_op == Operator::Plus || t_op == Operator::Minus || t_op == Operator::Multiply || t_op == Operator::Divide;
 }
 
-bool isType(Kind kind) {
-    return kind == Kind::tok_int || kind == Kind::tok_float || kind == Kind::tok_bool || kind == Kind::tok_char || kind == Kind::tok_string;
+inline bool isType(Kind t_kind) {
+    return t_kind == Kind::tok_int || t_kind == Kind::tok_float || t_kind == Kind::tok_bool || t_kind == Kind::tok_char || t_kind == Kind::tok_string;
 }
 
-TypeKind getTypeKind(Kind kind) {
-    if (kind == Kind::tok_int) return TypeKind::INT;
-    if (kind == Kind::tok_float) return TypeKind::FLOAT;
-    if (kind == Kind::tok_bool) return TypeKind::BOOL;
-    if (kind == Kind::tok_char) return TypeKind::CHAR;
-    if (kind == Kind::tok_string) return TypeKind::STRING;
+inline TypeKind getTypeKind(Kind t_kind) {
+    if (t_kind == Kind::tok_int) return TypeKind::INT;
+    if (t_kind == Kind::tok_float) return TypeKind::FLOAT;
+    if (t_kind == Kind::tok_bool) return TypeKind::BOOL;
+    if (t_kind == Kind::tok_char) return TypeKind::CHAR;
+    if (t_kind == Kind::tok_string) return TypeKind::STRING;
     return TypeKind::VOID;
 }
 
-bool isLiteral(Kind kind) {
-    return kind == Kind::tok_int_literal || kind == Kind::tok_float_literal || kind == Kind::tok_bool_literal || kind == Kind::tok_char_literal;
+inline bool isLiteral(Kind t_kind) {
+    return t_kind == Kind::tok_int_literal || t_kind == Kind::tok_float_literal || t_kind == Kind::tok_bool_literal || t_kind == Kind::tok_char_literal;
 }
 
-std::string type_to_string(TypeKind type) {
-    switch (type) {
+inline std::string type_to_string(TypeKind t_type) {
+    switch (t_type) {
         case TypeKind::INT: return "int";
         case TypeKind::FLOAT: return "float";
         case TypeKind::BOOL: return "bool";

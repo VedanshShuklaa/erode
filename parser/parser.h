@@ -11,17 +11,17 @@
 
 class Parser {
 public:
-    Parser(Lexer& lexer);
+    Parser(Lexer& t_lexer);
 
     std::unique_ptr<Program> parseProgram();
-    void printProgram(Program* program);
+    void printProgram(Program* t_program);
 
 private:
     Lexer& lexer;
 
-    [[noreturn]] void error(const std::string& message);
+    [[noreturn]] void error(const std::string& t_message);
 
-    Token consume(Kind expected, const std::string& msg);
+    Token consume(Kind t_expected, const std::string& t_msg);
 
     Item* parseItem();
     FunctionDef* parseFunction();
@@ -29,6 +29,9 @@ private:
 
     Statement* parseStatement();
     BlockStmt* parseBlock();
+    IfStmt* parseIf();
+    WhileStmt* parseWhile();
+    ForStmt* parseFor();
 
     Expression* parseExpression();
     Expression* parseLogicalOr();
@@ -40,5 +43,5 @@ private:
     Expression* parseUnary();
     Expression* parsePostfix();
     Expression* parsePrimary();
-
+    Expression* parseAssignment();
 };

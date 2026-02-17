@@ -15,8 +15,8 @@ struct FunctionDef : Item {
     BlockStmt* body;
     TypeKind returnType;
 
-    FunctionDef(std::string name, std::vector<Param> params, BlockStmt* body, TypeKind returnType)
-        : name(name), params(params), body(body), returnType(returnType) {}
+    FunctionDef(std::string t_name, std::vector<Param> t_params, BlockStmt* t_body, TypeKind t_returnType)
+        : name(t_name), params(t_params), body(t_body), returnType(t_returnType) {}
 };
 
 struct ExternDecl : Item {
@@ -24,6 +24,6 @@ struct ExternDecl : Item {
     std::vector<Param> params;
     TypeKind returnType;
     
-    ExternDecl(std::string name, std::vector<Param> params, TypeKind returnType)
-        : name(name), params(params), returnType(returnType) {}
+    ExternDecl(std::string t_name, std::vector<Param> t_params, TypeKind t_returnType)
+        : name(t_name), params(t_params), returnType(t_returnType) {}
 };
