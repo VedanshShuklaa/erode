@@ -1,6 +1,7 @@
 #include "lexer/lexer.h"
 #include "parser/parser.h"
 #include "semantics/semantic_analyzer.h"
+#include "codegen/codegen.h"
 
 #include <iostream>
 #include <fstream>
@@ -11,6 +12,7 @@ void printUsage(const char* prog) {
               << "  " << prog << " <input_file> test-lexer\n"
               << "  " << prog << " <input_file> test-parser\n"
               << "  " << prog << " <input_file> test-semantics\n"
+              << "  " << prog << " <input_file> codegen\n"
               << "  " << prog << " <input_file> full\n";
 }
 
@@ -34,6 +36,10 @@ int main(int argc, char* argv[]) {
         std::istreambuf_iterator<char>()
     );
     content.push_back('\0');
+
+    std::error_code EC;
+    llvm::raw_fd_ostream out("output.ll", EC);
+    
 
     try {
         Lexer lexer(content.c_str(), content.c_str() + content.size());
@@ -62,9 +68,22 @@ int main(int argc, char* argv[]) {
             return 0;
         }
 
+        CodeGen* codegen = new CodeGen();
+        codegen->generate(program.get());
+
+        if (mode == "codegen") {
+            codegen->dump();
+            return 0;
+        }
+
         if (mode == "full") {
             std::cout << "Full pipeline successful!\n";
             parser.printProgram(program.get());
+            return 0;
+        }
+
+        if(mode == "output") {
+            codegen->getModule()->print(out, nullptr);
             return 0;
         }
 

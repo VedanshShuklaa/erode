@@ -44,7 +44,16 @@ where <mode> can be one of the following:
 - test-lexer // Tests the lexer
 - test-parser // Tests the parser
 - test-semantics // Tests the semantic analyzer
+- codegen // dumps the IR representation of the code
+- output // gives the actual output (.ll) file
 - full // Runs the full pipeline
+```
+
+Furthermore to run the output file, you can use the following command:
+
+```bash
+clang <output_file> -o <output_executable>
+./<output_executable>
 ```
 
 ## Syntax
@@ -57,6 +66,23 @@ def function_name(type1 param1, type2 param2, ... typeN paramN) -> return_type {
 }
 ```
 
+Control flow statements are defined same as their generic implementations
+
+```erode
+    if (condition) {
+        // Code
+    } else {
+        // Code
+    }
+
+    for (init; condition; post) {
+        // Code
+    }
+
+    while (condition) {
+        // Code
+    }
+```
 Variable declarations are done using type declarations. The supported types are :
 
 ```erode
@@ -69,7 +95,8 @@ string s = "hello";
 
 ## To be added
 
-- Control flow
+- Control flow (DONE WITH THIS YEPPIE!) Note: yet to implement "else if"
+- Standard Library
 - Memory management
 - Ownership
 - Borrowing
