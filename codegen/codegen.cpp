@@ -312,7 +312,14 @@ void CodeGen::generateIf(IfStmt* stmt) {
         // Insert else block into function (LLVM 16+ compatible)
         elseBlock->insertInto(currentFunction);
         builder->SetInsertPoint(elseBlock);
-        generateBlock(stmt->elseBlock, true);
+
+        // If the next statement is an if statement, generate it, else generate the block
+        if(auto* b = dynamic_cast<BlockStmt*>(stmt->elseBlock)) {
+            generateBlock(b, true);
+        } else if(auto* i = dynamic_cast<IfStmt*>(stmt->elseBlock)) {
+            generateIf(i);
+        }
+        
         if (!builder->GetInsertBlock()->getTerminator()) {
             builder->CreateBr(mergeBlock);
         }

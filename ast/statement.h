@@ -2,9 +2,7 @@
 #include "item.h"
 #include "expression.h"
 
-struct Statement : Item {
-    
-};
+struct Statement : Item {};
 
 struct ExprStmt : Statement {
     Expression* expr;
@@ -34,9 +32,9 @@ struct ReturnStmt : Statement {
 struct IfStmt : Statement {
     Expression* condition;
     BlockStmt* thenBlock;
-    BlockStmt* elseBlock;
+    Statement* elseBlock;
 
-    IfStmt(Expression* t_condition, BlockStmt* t_thenBlock, BlockStmt* t_elseBlock)
+    IfStmt(Expression* t_condition, BlockStmt* t_thenBlock, Statement* t_elseBlock)
         : condition(t_condition), thenBlock(t_thenBlock), elseBlock(t_elseBlock) {}
 };
 
@@ -47,6 +45,9 @@ struct WhileStmt : Statement {
     WhileStmt(Expression* t_condition, BlockStmt* t_body)
         : condition(t_condition), body(t_body) {}
 };
+
+struct BreakStmt : Statement {};
+struct ContinueStmt : Statement {};
 
 struct ForStmt : Statement {
     Statement* init;

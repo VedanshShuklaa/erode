@@ -6,9 +6,7 @@
 #include <string>
 #include <vector>
 
-struct Expression : Node {
-    
-};
+struct Expression : Node {};
 
 struct IdentifierExpr : Expression {
     std::string name;

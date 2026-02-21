@@ -109,11 +109,15 @@ void SemanticAnalyzer::analyzeIf(IfStmt* stmt)
     leaveScope();
     
     if (stmt->elseBlock) {
-        enterScope();
-        for (auto& s : stmt->elseBlock->statements) {
-            analyzeStatement(s);
+        if(auto* b = dynamic_cast<BlockStmt*>(stmt->elseBlock)) {
+            enterScope();
+            for (auto& s : b->statements) {
+                analyzeStatement(s);
+            }
+            leaveScope();
+        } else if(auto* i = dynamic_cast<IfStmt*>(stmt->elseBlock)) {
+            analyzeIf(i);
         }
-        leaveScope();
     }
 }
 

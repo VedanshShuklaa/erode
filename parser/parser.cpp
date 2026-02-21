@@ -169,14 +169,18 @@ IfStmt* Parser::parseIf() {
     BlockStmt* thenBlock = parseBlock();
     consume(Kind::tok_rbrace, "Expected '}' after if body");
     
-    BlockStmt* elseBlock = nullptr;
+    Statement* elseBlock = nullptr;
     if (lexer.current().kind == Kind::tok_else) {
         lexer.next();
-        consume(Kind::tok_lbrace, "Expected '{' after 'else'");
-        elseBlock = parseBlock();
-        consume(Kind::tok_rbrace, "Expected '}' after else body");
+        if(lexer.current().kind == Kind::tok_if) {
+            consume(Kind::tok_if, "Expected 'if' after 'else'");
+            elseBlock = parseIf();
+        } else {
+            consume(Kind::tok_lbrace, "Expected '{' after 'else'");
+            elseBlock = parseBlock();
+            consume(Kind::tok_rbrace, "Expected '}' after else body");
+        }
     }
-    
     return new IfStmt(condition, thenBlock, elseBlock);
 }
 
@@ -565,9 +569,15 @@ void printStmt(Statement* stmt, int depth) {
         std::cout << "Then\n";
         printBlock(s->thenBlock, depth + 2);
         if (s->elseBlock) {
-            indent(depth + 1);
-            std::cout << "Else\n";
-            printBlock(s->elseBlock, depth + 2);
+            if(auto* b = dynamic_cast<BlockStmt*>(s->elseBlock)) {
+                indent(depth + 1);
+                std::cout << "Else\n";
+                printBlock(b, depth + 2);
+            } else if(auto* i = dynamic_cast<IfStmt*>(s->elseBlock)) {
+                indent(depth + 1);
+                std::cout << "Else\n";
+                printStmt(i, depth + 2);
+            }
         }
     }
     else if (auto* s = dynamic_cast<WhileStmt*>(stmt)) {
